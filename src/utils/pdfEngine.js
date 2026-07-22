@@ -77,24 +77,29 @@ function suggestFileNameFromUrl(url) {
  * Higher scale = sharper but slower/heavier. Used for both the base
  * flipbook render and the higher-res zoom re-render.
  */
-export async function renderPageToDataUrl(pdfDoc, pageNumber, baseScale = 1.4, useDpr = true) {
+export async function renderPageToDataUrl(pdfDoc, pageNumber, baseScale = 2.2, useDpr = true) {
   const page = await pdfDoc.getPage(pageNumber);
   
-  // Cap DPR at 1.6 to prevent massive memory footprints on high-DPI devices
-  const dpr = useDpr ? Math.min(1.6, window.devicePixelRatio || 1) : 1;
+  // Cap DPR at 2.0 to ensure crisp high-DPI rendering without excessive memory overhead
+  const dpr = useDpr ? Math.min(2.0, window.devicePixelRatio || 1) : 1;
   const viewport = page.getViewport({ scale: baseScale * dpr });
   const logicalViewport = page.getViewport({ scale: baseScale });
 
   const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { alpha: false });
   
   canvas.width = viewport.width;
   canvas.height = viewport.height;
 
+  if (ctx) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+  }
+
   await page.render({ canvasContext: ctx, viewport }).promise;
   
-  // 0.90 quality preserves full visual clarity while reducing data URL footprint by ~30%
-  const dataUrl = canvas.toDataURL("image/jpeg", 0.90);
+  // 0.92 quality preserves razor-sharp text clarity
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
 
   canvas.width = 0;
   canvas.height = 0;

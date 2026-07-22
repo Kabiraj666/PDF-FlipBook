@@ -11,7 +11,7 @@ import {
 import { useLocalStorage, fileIdentity } from "./hooks/useLocalStorage.js";
 import { saveBook, loadBook, deleteBook } from "./utils/db.js";
 
-const RENDER_SCALE = 1.4;
+const RENDER_SCALE = 2.2;
 
 export default function App() {
   const [stage, setStage] = useState("upload"); // upload | loading | reading

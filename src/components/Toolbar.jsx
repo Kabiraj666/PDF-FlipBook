@@ -24,7 +24,13 @@ export default function Toolbar({
   onFullscreen,
   onToggleToc,
   onSearch,
-  onOpenLibraryScreen
+  onOpenLibraryScreen,
+  viewMode = "auto",
+  onToggleViewMode,
+  readerZoom = 1.0,
+  onZoomIn,
+  onZoomOut,
+  onResetZoom
 }) {
   const [pageInput, setPageInput] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -42,25 +48,90 @@ export default function Toolbar({
   };
 
   return (
-    <div className="glass-strong w-full px-2 sm:px-4 py-2 flex items-center gap-1.5 sm:gap-2 text-paper relative z-20 overflow-x-auto no-scrollbar">
+    <div className="glass-strong w-full px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 text-paper relative z-20 overflow-x-auto no-scrollbar">
       {/* K. Kabiraj Micro-Branding */}
-      <div className="flex items-center gap-2 mr-3 border-r border-void-600/60 pr-3 shrink-0">
+      <div className="flex items-center gap-2 mr-2 sm:mr-3 border-r border-void-600/60 pr-2 sm:pr-3 shrink-0">
         <img src="/logo.jpg" className="w-5 h-5 rounded object-cover border border-brass-400/25 shadow-sm" alt="" />
         <span className="font-mono text-[9px] tracking-wider text-brass-300 uppercase hidden md:inline">K. Kabiraj</span>
       </div>
 
       <button
         onClick={onOpenLibraryScreen}
-        className="font-mono text-xs tracking-widest text-beam-300 uppercase mr-2 shrink-0 cursor-pointer hover:underline"
+        className="font-mono text-xs tracking-widest text-beam-300 uppercase mr-1 sm:mr-2 shrink-0 cursor-pointer hover:underline"
       >
         ← Library
       </button>
 
-      <span className="font-display text-sm truncate max-w-[160px] sm:max-w-xs hidden sm:block">
+      <span className="font-display text-sm truncate max-w-[120px] sm:max-w-xs hidden sm:block">
         {title}
       </span>
 
       <div className="flex-1" />
+
+      {/* Main Reader Zoom Controls (- / % / +) */}
+      <div className="flex items-center bg-void-900/70 border border-brass-400/30 rounded-lg p-0.5 shrink-0 mr-1 sm:mr-2">
+        <button
+          onClick={onZoomOut}
+          disabled={readerZoom <= 0.8}
+          title="Zoom Out Flipbook (Ctrl + Scroll Down)"
+          className="w-7 h-7 flex items-center justify-center rounded text-void-200 hover:text-brass-300 hover:bg-void-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-xs"
+        >
+          −
+        </button>
+        <button
+          onClick={onResetZoom}
+          title="Reset Zoom to 100%"
+          className="px-1.5 py-0.5 text-[10px] font-mono font-semibold text-brass-300 hover:text-paper cursor-pointer whitespace-nowrap"
+        >
+          {Math.round(readerZoom * 100)}%
+        </button>
+        <button
+          onClick={onZoomIn}
+          disabled={readerZoom >= 2.5}
+          title="Zoom In Flipbook (Ctrl + Scroll Up)"
+          className="w-7 h-7 flex items-center justify-center rounded text-void-200 hover:text-brass-300 hover:bg-void-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-xs"
+        >
+          +
+        </button>
+      </div>
+
+      {/* View Mode Toggle Button (Single Page 📄 vs Book Spread 📖) */}
+      {onToggleViewMode && (
+        <button
+          onClick={onToggleViewMode}
+          title={
+            viewMode === "single"
+              ? "Current: Single Page View (Large Text). Click for 2-Page Book Spread."
+              : viewMode === "double"
+              ? "Current: 2-Page Book Spread. Click for Auto mode."
+              : "Current: Auto Layout. Click for Single Page View (2x Larger Text)."
+          }
+          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-mono shrink-0 cursor-pointer transition-all ${
+            viewMode === "single"
+              ? "bg-brass-400 text-void-950 border-brass-400 font-semibold shadow-glow"
+              : viewMode === "double"
+              ? "bg-beam-400/20 text-beam-300 border-beam-400/40 font-semibold"
+              : "bg-void-900/60 border-void-700 text-void-200 hover:text-brass-300"
+          }`}
+        >
+          {viewMode === "single" ? (
+            <>
+              <span>📄</span>
+              <span className="hidden md:inline">1 Page (2x Text)</span>
+            </>
+          ) : viewMode === "double" ? (
+            <>
+              <span>📖</span>
+              <span className="hidden md:inline">2 Page Spread</span>
+            </>
+          ) : (
+            <>
+              <span>📱</span>
+              <span className="hidden md:inline">Auto View</span>
+            </>
+          )}
+        </button>
+      )}
 
       <IconBtn title="Table of contents" onClick={onToggleToc}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -75,7 +146,7 @@ export default function Toolbar({
         </svg>
       </IconBtn>
 
-      <IconBtn title="Zoom page (HD 360° Vector Zoom)" onClick={() => onZoom(currentPage)}>
+      <IconBtn title="HD Vector Zoom Modal (360° Pan)" onClick={() => onZoom(currentPage)}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <circle cx="11" cy="11" r="7" />
           <path d="M21 21l-4.3-4.3M11 8v6M8 11h6" strokeLinecap="round" />
