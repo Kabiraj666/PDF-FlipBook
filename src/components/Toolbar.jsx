@@ -1,0 +1,226 @@
+import React, { useState } from "react";
+
+const IconBtn = ({ onClick, active, title, children }) => (
+  <button
+    onClick={onClick}
+    title={title}
+    className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer
+      ${active ? "bg-beam-400/20 text-beam-300" : "text-void-200/80 hover:bg-void-600/60 hover:text-void-50"}`}
+  >
+    {children}
+  </button>
+);
+
+export default function Toolbar({
+  title,
+  currentPage,
+  totalPages,
+  onJumpTo,
+  isBookmarked,
+  onToggleBookmark,
+  soundEnabled,
+  onToggleSound,
+  onZoom,
+  onFullscreen,
+  onToggleToc,
+  onSearch,
+  onOpenLibraryScreen
+}) {
+  const [pageInput, setPageInput] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [jumpModalOpen, setJumpModalOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const handleJumpSubmit = (e) => {
+    e?.preventDefault();
+    const n = parseInt(pageInput, 10);
+    if (n >= 1 && n <= totalPages) {
+      onJumpTo(n);
+      setJumpModalOpen(false);
+      setPageInput("");
+    }
+  };
+
+  return (
+    <div className="glass-strong w-full px-2 sm:px-4 py-2 flex items-center gap-1.5 sm:gap-2 text-paper relative z-20 overflow-x-auto no-scrollbar">
+      {/* K. Kabiraj Micro-Branding */}
+      <div className="flex items-center gap-2 mr-3 border-r border-void-600/60 pr-3 shrink-0">
+        <img src="/logo.jpg" className="w-5 h-5 rounded object-cover border border-brass-400/25 shadow-sm" alt="" />
+        <span className="font-mono text-[9px] tracking-wider text-brass-300 uppercase hidden md:inline">K. Kabiraj</span>
+      </div>
+
+      <button
+        onClick={onOpenLibraryScreen}
+        className="font-mono text-xs tracking-widest text-beam-300 uppercase mr-2 shrink-0 cursor-pointer hover:underline"
+      >
+        ← Library
+      </button>
+
+      <span className="font-display text-sm truncate max-w-[160px] sm:max-w-xs hidden sm:block">
+        {title}
+      </span>
+
+      <div className="flex-1" />
+
+      <IconBtn title="Table of contents" onClick={onToggleToc}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M4 6h16M4 12h10M4 18h16" strokeLinecap="round" />
+        </svg>
+      </IconBtn>
+
+      <IconBtn title="Search" onClick={() => { setSearchOpen((s) => !s); setJumpModalOpen(false); }} active={searchOpen}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+        </svg>
+      </IconBtn>
+
+      <IconBtn title="Zoom page (HD 360° Vector Zoom)" onClick={() => onZoom(currentPage)}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3M11 8v6M8 11h6" strokeLinecap="round" />
+        </svg>
+      </IconBtn>
+
+      <IconBtn title={isBookmarked ? "Remove bookmark" : "Bookmark this page"} onClick={onToggleBookmark} active={isBookmarked}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill={isBookmarked ? "#F59E0B" : "none"} stroke="currentColor" strokeWidth="1.8">
+          <path d="M6 3h12v18l-6-4-6 4V3z" strokeLinejoin="round" />
+        </svg>
+      </IconBtn>
+
+      <IconBtn title={soundEnabled ? "Mute flip sound" : "Unmute flip sound"} onClick={onToggleSound} active={soundEnabled}>
+        {soundEnabled ? (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </IconBtn>
+
+      <IconBtn title="Fullscreen" onClick={onFullscreen}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </IconBtn>
+
+      {/* Directly Go to Desired Page Trigger */}
+      <button
+        onClick={() => { setJumpModalOpen((s) => !s); setSearchOpen(false); setPageInput(String(currentPage)); }}
+        title="Directly Go to Desired Page"
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-xs cursor-pointer transition-all duration-200 ml-2 ${
+          jumpModalOpen 
+            ? "bg-brass-400 text-void-950 border-brass-400 font-semibold shadow-glow" 
+            : "bg-void-900/60 border-brass-400/40 text-paper hover:border-brass-400 hover:text-brass-300"
+        }`}
+      >
+        <span>Page {currentPage}</span>
+        <span className="text-void-200/50 text-[10px]">/ {totalPages}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {/* Direct Jump to Page Modal Popover */}
+      {jumpModalOpen && (
+        <div className="glass-strong fixed sm:absolute top-14 right-2 sm:right-4 rounded-xl p-4 shadow-2xl w-[88vw] sm:w-80 z-30 border border-brass-400/30 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between mb-3 border-b border-void-700/60 pb-2">
+            <span className="font-mono text-xs uppercase tracking-wider text-brass-300 font-semibold">
+              Go to Desired Page
+            </span>
+            <button
+              onClick={() => setJumpModalOpen(false)}
+              className="text-void-200/50 hover:text-paper text-xs cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <form onSubmit={handleJumpSubmit} className="flex items-center gap-2 mb-4">
+            <input
+              autoFocus
+              type="number"
+              min={1}
+              max={totalPages}
+              value={pageInput}
+              onChange={(e) => setPageInput(e.target.value)}
+              placeholder={`1 - ${totalPages}`}
+              className="flex-1 border border-brass-400/40 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-400 text-paper font-mono"
+              style={{ backgroundColor: "#0B0E1B" }}
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-brass-400 text-void-950 font-semibold rounded-lg text-xs hover:bg-brass-300 transition-colors cursor-pointer shrink-0"
+            >
+              Go →
+            </button>
+          </form>
+
+          {/* Interactive Page Slider */}
+          <div className="mb-4">
+            <div className="flex justify-between font-mono text-[10px] text-void-200/60 mb-1">
+              <span>Slide to page:</span>
+              <span className="text-brass-300 font-bold">Page {pageInput || currentPage}</span>
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={totalPages}
+              value={parseInt(pageInput, 10) || currentPage}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setPageInput(String(val));
+                onJumpTo(val);
+              }}
+              className="w-full accent-brass-400 cursor-pointer"
+            />
+          </div>
+
+          {/* Quick Jump Shortcuts */}
+          <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-void-700/60 font-mono text-[10px]">
+            <button
+              onClick={() => { onJumpTo(1); setJumpModalOpen(false); }}
+              className="py-1.5 px-1 bg-void-900/80 hover:bg-void-800 border border-void-700 rounded text-center text-void-200 hover:text-brass-300 cursor-pointer"
+            >
+              First (p.1)
+            </button>
+            <button
+              onClick={() => { const mid = Math.round(totalPages / 2); onJumpTo(mid); setJumpModalOpen(false); }}
+              className="py-1.5 px-1 bg-void-900/80 hover:bg-void-800 border border-void-700 rounded text-center text-void-200 hover:text-brass-300 cursor-pointer"
+            >
+              Middle ({Math.round(totalPages / 2)})
+            </button>
+            <button
+              onClick={() => { onJumpTo(totalPages); setJumpModalOpen(false); }}
+              className="py-1.5 px-1 bg-void-900/80 hover:bg-void-800 border border-void-700 rounded text-center text-void-200 hover:text-brass-300 cursor-pointer"
+            >
+              Last ({totalPages})
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Document Keyword Search Modal */}
+      {searchOpen && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSearch(query);
+          }}
+          className="glass-strong fixed sm:absolute top-14 right-2 sm:right-4 rounded-xl p-3 shadow-glass w-[88vw] sm:w-72 z-30"
+        >
+          <input
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search this book…"
+            className="w-full border border-brass-400/40 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-400 placeholder:text-void-400"
+            style={{ backgroundColor: "#0B0E1B", color: "#FBF8F1" }}
+          />
+        </form>
+      )}
+    </div>
+  );
+}

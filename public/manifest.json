@@ -1,0 +1,22 @@
+{
+  "short_name": "Leaflet",
+  "name": "Leaflet — Read PDFs like a Book",
+  "description": "Read any PDF with a realistic page-turn animation on mobile and desktop.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#11161F",
+  "theme_color": "#C9A227",
+  "display": "standalone",
+  "orientation": "any"
+}
