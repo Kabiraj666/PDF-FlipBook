@@ -4,7 +4,7 @@ const IconBtn = ({ onClick, active, title, children }) => (
   <button
     onClick={onClick}
     title={title}
-    className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer
+    className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer shrink-0
       ${active ? "bg-beam-400/20 text-beam-300" : "text-void-200/80 hover:bg-void-600/60 hover:text-void-50"}`}
   >
     {children}
@@ -48,48 +48,48 @@ export default function Toolbar({
   };
 
   return (
-    <div className="glass-strong w-full px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 text-paper relative z-20 overflow-x-auto no-scrollbar">
+    <div className="glass-strong w-full px-1.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1 sm:gap-2 text-paper relative z-20 overflow-x-auto no-scrollbar">
       {/* K. Kabiraj Micro-Branding */}
-      <div className="flex items-center gap-2 mr-2 sm:mr-3 border-r border-void-600/60 pr-2 sm:pr-3 shrink-0">
-        <img src="/logo.jpg" className="w-5 h-5 rounded object-cover border border-brass-400/25 shadow-sm" alt="" />
+      <div className="flex items-center gap-1.5 sm:gap-2 mr-1 sm:mr-3 border-r border-void-600/60 pr-1.5 sm:pr-3 shrink-0">
+        <img src="/logo.jpg" className="w-4 h-4 sm:w-5 sm:h-5 rounded object-cover border border-brass-400/25 shadow-sm" alt="" />
         <span className="font-mono text-[9px] tracking-wider text-brass-300 uppercase hidden md:inline">K. Kabiraj</span>
       </div>
 
       <button
         onClick={onOpenLibraryScreen}
-        className="font-mono text-xs tracking-widest text-beam-300 uppercase mr-1 sm:mr-2 shrink-0 cursor-pointer hover:underline"
+        className="font-mono text-[11px] sm:text-xs tracking-wider sm:tracking-widest text-beam-300 uppercase shrink-0 cursor-pointer hover:underline"
       >
-        ← Library
+        ← <span className="hidden xs:inline">Library</span><span className="xs:hidden">Lib</span>
       </button>
 
-      <span className="font-display text-sm truncate max-w-[120px] sm:max-w-xs hidden sm:block">
+      <span className="font-display text-sm truncate max-w-[100px] sm:max-w-xs hidden md:block">
         {title}
       </span>
 
-      <div className="flex-1" />
+      <div className="flex-1 min-w-[4px]" />
 
       {/* Main Reader Zoom Controls (- / % / +) */}
-      <div className="flex items-center bg-void-900/70 border border-brass-400/30 rounded-lg p-0.5 shrink-0 mr-1 sm:mr-2">
+      <div className="flex items-center bg-void-900/70 border border-brass-400/30 rounded-lg p-0.5 shrink-0">
         <button
           onClick={onZoomOut}
           disabled={readerZoom <= 0.8}
-          title="Zoom Out Flipbook (Ctrl + Scroll Down)"
-          className="w-7 h-7 flex items-center justify-center rounded text-void-200 hover:text-brass-300 hover:bg-void-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-xs"
+          title="Zoom Out Flipbook"
+          className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded text-void-200 hover:text-brass-300 hover:bg-void-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-xs"
         >
           −
         </button>
         <button
           onClick={onResetZoom}
           title="Reset Zoom to 100%"
-          className="px-1.5 py-0.5 text-[10px] font-mono font-semibold text-brass-300 hover:text-paper cursor-pointer whitespace-nowrap"
+          className="px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-mono font-semibold text-brass-300 hover:text-paper cursor-pointer whitespace-nowrap"
         >
           {Math.round(readerZoom * 100)}%
         </button>
         <button
           onClick={onZoomIn}
           disabled={readerZoom >= 2.5}
-          title="Zoom In Flipbook (Ctrl + Scroll Up)"
-          className="w-7 h-7 flex items-center justify-center rounded text-void-200 hover:text-brass-300 hover:bg-void-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-xs"
+          title="Zoom In Flipbook"
+          className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded text-void-200 hover:text-brass-300 hover:bg-void-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-xs"
         >
           +
         </button>
@@ -106,7 +106,7 @@ export default function Toolbar({
               ? "Current: 2-Page Book Spread. Click for Auto mode."
               : "Current: Auto Layout. Click for Single Page View (2x Larger Text)."
           }
-          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-mono shrink-0 cursor-pointer transition-all ${
+          className={`flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border text-[11px] sm:text-xs font-mono shrink-0 cursor-pointer transition-all ${
             viewMode === "single"
               ? "bg-brass-400 text-void-950 border-brass-400 font-semibold shadow-glow"
               : viewMode === "double"
@@ -117,62 +117,65 @@ export default function Toolbar({
           {viewMode === "single" ? (
             <>
               <span>📄</span>
-              <span className="hidden md:inline">1 Page (2x Text)</span>
+              <span className="hidden sm:inline">1 Page (2x)</span>
+              <span className="sm:hidden text-[9px]">1P</span>
             </>
           ) : viewMode === "double" ? (
             <>
               <span>📖</span>
-              <span className="hidden md:inline">2 Page Spread</span>
+              <span className="hidden sm:inline">2 Page Spread</span>
+              <span className="sm:hidden text-[9px]">2P</span>
             </>
           ) : (
             <>
               <span>📱</span>
-              <span className="hidden md:inline">Auto View</span>
+              <span className="hidden sm:inline">Auto View</span>
+              <span className="sm:hidden text-[9px]">Auto</span>
             </>
           )}
         </button>
       )}
 
       <IconBtn title="Table of contents" onClick={onToggleToc}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M4 6h16M4 12h10M4 18h16" strokeLinecap="round" />
         </svg>
       </IconBtn>
 
       <IconBtn title="Search" onClick={() => { setSearchOpen((s) => !s); setJumpModalOpen(false); }} active={searchOpen}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <circle cx="11" cy="11" r="7" />
           <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
         </svg>
       </IconBtn>
 
       <IconBtn title="HD Vector Zoom Modal (360° Pan)" onClick={() => onZoom(currentPage)}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <circle cx="11" cy="11" r="7" />
           <path d="M21 21l-4.3-4.3M11 8v6M8 11h6" strokeLinecap="round" />
         </svg>
       </IconBtn>
 
       <IconBtn title={isBookmarked ? "Remove bookmark" : "Bookmark this page"} onClick={onToggleBookmark} active={isBookmarked}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill={isBookmarked ? "#F59E0B" : "none"} stroke="currentColor" strokeWidth="1.8">
+        <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" fill={isBookmarked ? "#F59E0B" : "none"} stroke="currentColor" strokeWidth="1.8">
           <path d="M6 3h12v18l-6-4-6 4V3z" strokeLinejoin="round" />
         </svg>
       </IconBtn>
 
       <IconBtn title={soundEnabled ? "Mute flip sound" : "Unmute flip sound"} onClick={onToggleSound} active={soundEnabled}>
         {soundEnabled ? (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
       </IconBtn>
 
       <IconBtn title="Fullscreen" onClick={onFullscreen}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </IconBtn>
@@ -181,15 +184,15 @@ export default function Toolbar({
       <button
         onClick={() => { setJumpModalOpen((s) => !s); setSearchOpen(false); setPageInput(String(currentPage)); }}
         title="Directly Go to Desired Page"
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-xs cursor-pointer transition-all duration-200 ml-2 ${
+        className={`flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border font-mono text-[11px] sm:text-xs cursor-pointer transition-all duration-200 shrink-0 ${
           jumpModalOpen 
             ? "bg-brass-400 text-void-950 border-brass-400 font-semibold shadow-glow" 
             : "bg-void-900/60 border-brass-400/40 text-paper hover:border-brass-400 hover:text-brass-300"
         }`}
       >
-        <span>Page {currentPage}</span>
-        <span className="text-void-200/50 text-[10px]">/ {totalPages}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <span>p.{currentPage}</span>
+        <span className="text-void-200/50 text-[9px] sm:text-[10px]">/{totalPages}</span>
+        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
