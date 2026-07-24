@@ -221,14 +221,20 @@ export default function FlipbookReader({
   const firstValidPage = pages.find((p) => p && p.width && p.height);
   const aspect = firstValidPage ? firstValidPage.width / firstValidPage.height : 0.72;
 
-  const isPortrait = viewMode === "single" ? true : viewMode === "double" ? false : (dims ? (dims.width * 2 > (containerRef.current?.clientWidth || 9999)) : false);
+  const isPortrait = viewMode === "single" ? true : viewMode === "double" ? false : (
+    (containerRef.current?.clientWidth || window.innerWidth) < 768 ||
+    (dims ? (dims.width * 2 > (containerRef.current?.clientWidth || 9999)) : false)
+  );
 
   useEffect(() => {
     function computeDims() {
       const el = containerRef.current;
       if (!el) return;
-      const availW = el.clientWidth - 32;
-      const availH = el.clientHeight - 32;
+      const isMobile = window.innerWidth < 640;
+      const padX = isMobile ? 8 : 32;
+      const padY = isMobile ? 8 : 32;
+      const availW = el.clientWidth - padX;
+      const availH = el.clientHeight - padY;
       let h = availH;
       let w = h * aspect;
       if (isPortrait) {
@@ -242,7 +248,7 @@ export default function FlipbookReader({
           h = w / aspect;
         }
       }
-      setDims({ width: Math.max(220, w), height: Math.max(300, h) });
+      setDims({ width: Math.max(180, w), height: Math.max(240, h) });
     }
     computeDims();
     window.addEventListener("resize", computeDims);
@@ -414,7 +420,7 @@ export default function FlipbookReader({
 
       <div 
         ref={containerRef} 
-        className="flex-1 flex items-center justify-center overflow-auto px-4 py-4 relative group select-none"
+        className="flex-1 flex items-center justify-center overflow-auto px-1 sm:px-4 py-2 sm:py-4 relative group select-none"
         onWheel={(e) => {
           if (e.ctrlKey) {
             e.preventDefault();
@@ -428,10 +434,10 @@ export default function FlipbookReader({
           <button
             onClick={() => { if (!isFlipping) bookRef.current?.pageFlip().flipPrev(); }}
             disabled={isFlipping}
-            className="absolute left-6 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-void-900/60 hover:bg-void-800 border border-brass-400/25 hover:border-brass-400 text-paper hover:text-brass-300 transition-all duration-200 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed md:opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="absolute left-1 sm:left-6 z-30 w-9 h-9 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-void-900/85 hover:bg-void-800 border border-brass-400/30 text-paper hover:text-brass-300 transition-all duration-200 shadow-lg cursor-pointer disabled:opacity-20 opacity-80 sm:opacity-0 group-hover:opacity-100 focus:opacity-100"
             title="Previous Page"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
@@ -442,10 +448,10 @@ export default function FlipbookReader({
           <button
             onClick={() => { if (!isFlipping) bookRef.current?.pageFlip().flipNext(); }}
             disabled={isFlipping}
-            className="absolute right-6 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-void-900/60 hover:bg-void-800 border border-brass-400/25 hover:border-brass-400 text-paper hover:text-brass-300 transition-all duration-200 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed md:opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="absolute right-1 sm:right-6 z-30 w-9 h-9 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-void-900/85 hover:bg-void-800 border border-brass-400/30 text-paper hover:text-brass-300 transition-all duration-200 shadow-lg cursor-pointer disabled:opacity-20 opacity-80 sm:opacity-0 group-hover:opacity-100 focus:opacity-100"
             title="Next Page"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
           </button>
@@ -453,10 +459,10 @@ export default function FlipbookReader({
 
         {dims ? (
           <div 
-            className="relative transition-transform duration-300 ease-out rounded-2xl bg-gradient-to-b from-[#161D32] via-[#0F1424] to-[#0A0D18] border-2 border-brass-400/35 p-[24px_12px] shadow-[0_35px_80px_-10px_rgba(0,0,0,0.95),0_15px_30px_rgba(0,0,0,0.8),inset_0_0_35px_rgba(0,0,0,0.85)]" 
+            className="relative transition-transform duration-300 ease-out rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#161D32] via-[#0F1424] to-[#0A0D18] border border-brass-400/35 sm:border-2 p-[12px_6px] sm:p-[24px_12px] shadow-[0_35px_80px_-10px_rgba(0,0,0,0.95)]" 
             style={{ 
-              width: dims.width * (isPortrait ? 1 : 2) + 24, 
-              height: dims.height + 48,
+              width: dims.width * (isPortrait ? 1 : 2) + (window.innerWidth < 640 ? 12 : 24), 
+              height: dims.height + (window.innerWidth < 640 ? 24 : 48),
               transform: `scale(${readerZoom}) ${
                 (!isPortrait && currentPage === 1) 
                   ? 'translateX(-25%)' 
@@ -468,45 +474,45 @@ export default function FlipbookReader({
             }}
           >
             {/* Hardcover Inner Gold Embossed Filigree Border */}
-            <div className="absolute inset-1.5 border border-brass-400/20 rounded-xl pointer-events-none z-0" />
-            <div className="absolute inset-2 border border-brass-500/10 rounded-lg pointer-events-none z-0" />
+            <div className="absolute inset-1 sm:inset-1.5 border border-brass-400/20 rounded-lg sm:rounded-xl pointer-events-none z-0" />
+            <div className="absolute inset-1.5 sm:inset-2 border border-brass-500/10 rounded-md sm:rounded-lg pointer-events-none z-0" />
 
             {/* 3D Brass Metallic Corner Guards */}
-            <div className="absolute top-1 left-1 w-4 h-4 border-t-2 border-l-2 border-brass-400/60 rounded-tl-sm pointer-events-none z-10" />
-            <div className="absolute top-1 right-1 w-4 h-4 border-t-2 border-r-2 border-brass-400/60 rounded-tr-sm pointer-events-none z-10" />
-            <div className="absolute bottom-1 left-1 w-4 h-4 border-b-2 border-l-2 border-brass-400/60 rounded-bl-sm pointer-events-none z-10" />
-            <div className="absolute bottom-1 right-1 w-4 h-4 border-b-2 border-r-2 border-brass-400/60 rounded-br-sm pointer-events-none z-10" />
+            <div className="absolute top-1 left-1 w-3 h-3 sm:w-4 sm:h-4 border-t-2 border-l-2 border-brass-400/60 rounded-tl-sm pointer-events-none z-10" />
+            <div className="absolute top-1 right-1 w-3 h-3 sm:w-4 sm:h-4 border-t-2 border-r-2 border-brass-400/60 rounded-tr-sm pointer-events-none z-10" />
+            <div className="absolute bottom-1 left-1 w-3 h-3 sm:w-4 sm:h-4 border-b-2 border-l-2 border-brass-400/60 rounded-bl-sm pointer-events-none z-10" />
+            <div className="absolute bottom-1 right-1 w-3 h-3 sm:w-4 sm:h-4 border-b-2 border-r-2 border-brass-400/60 rounded-br-sm pointer-events-none z-10" />
 
             {/* Page-Specific Floating Zoom Pill Buttons */}
             {isPortrait || currentPage === 1 ? (
               <button
                 onClick={() => handleZoom(currentPage)}
-                className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper hover:bg-brass-400/20 text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
+                className="absolute top-1.5 sm:top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper text-[10px] sm:text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
                 title={`Zoom Page ${currentPage} (HD 360° Pan)`}
               >
-                🔍 Zoom Page {currentPage}
+                🔍 Zoom P.{currentPage}
               </button>
             ) : (
               <>
                 {/* Left Page Specific Zoom Button */}
                 <button
                   onClick={() => handleZoom(currentPage)}
-                  className="absolute top-3 z-30 flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper hover:bg-brass-400/20 text-[10px] sm:text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
-                  style={{ left: `${12 + dims.width / 2}px`, transform: 'translateX(-50%)' }}
+                  className="absolute top-1.5 sm:top-3 z-30 flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper text-[9px] sm:text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
+                  style={{ left: `${6 + dims.width / 2}px`, transform: 'translateX(-50%)' }}
                   title={`Zoom Left Page ${currentPage} (HD 360° Pan)`}
                 >
-                  🔍 Page {currentPage}
+                  🔍 P.{currentPage}
                 </button>
 
                 {/* Right Page Specific Zoom Button */}
                 {currentPage + 1 <= totalBookPages && (
                   <button
                     onClick={() => handleZoom(currentPage + 1)}
-                    className="absolute top-3 z-30 flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper hover:bg-brass-400/20 text-[10px] sm:text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
-                    style={{ left: `${12 + dims.width + dims.width / 2}px`, transform: 'translateX(-50%)' }}
+                    className="absolute top-1.5 sm:top-3 z-30 flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper text-[9px] sm:text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
+                    style={{ left: `${6 + dims.width + dims.width / 2}px`, transform: 'translateX(-50%)' }}
                     title={`Zoom Right Page ${currentPage + 1} (HD 360° Pan)`}
                   >
-                    🔍 Page {currentPage + 1}
+                    🔍 P.{currentPage + 1}
                   </button>
                 )}
               </>
