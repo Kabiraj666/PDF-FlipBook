@@ -338,13 +338,17 @@ export default function FlipbookReader({
     setIsPanning(false);
   };
 
+  const [liveScale, setLiveScale] = useState(2.5);
+  const debouncedRenderRef = useRef(null);
+
   async function handleZoom(pageNumber, initialScale = 2.5) {
     const targetPage = pageNumber || currentPage;
     setIsZoomRendering(true);
     setPanOffset({ x: 0, y: 0 });
+    setZoomScale(initialScale);
+    setLiveScale(initialScale);
     try {
       const { dataUrl } = await renderPageToDataUrl(pdfDoc, targetPage, 2.2 * Math.min(3.0, initialScale), true);
-      setZoomScale(initialScale);
       setZoomState({ pageNum: targetPage, dataUrl });
     } catch (err) {
       console.error("Failed to render zoom view:", err);
@@ -353,9 +357,18 @@ export default function FlipbookReader({
     }
   }
 
+  function handleSliderChange(newScale) {
+    setLiveScale(newScale);
+    if (debouncedRenderRef.current) clearTimeout(debouncedRenderRef.current);
+    debouncedRenderRef.current = setTimeout(() => {
+      handleZoomScaleChange(newScale);
+    }, 250);
+  }
+
   async function handleZoomScaleChange(newScale) {
     if (!zoomState?.pageNum || !pdfDoc) return;
     setZoomScale(newScale);
+    setLiveScale(newScale);
     setIsZoomRendering(true);
     try {
       const { dataUrl } = await renderPageToDataUrl(pdfDoc, zoomState.pageNum, 2.2 * Math.min(3.0, newScale), true);
@@ -731,45 +744,47 @@ export default function FlipbookReader({
         >
           {/* Top HD Zoom Control Bar */}
           <div 
-            className="w-full max-w-4xl glass-strong rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-3 text-paper border border-brass-400/35 shadow-2xl relative z-10"
+            className="w-full max-w-5xl glass-strong rounded-xl px-2 sm:px-3 py-1.5 flex items-center justify-between gap-1.5 sm:gap-3 text-paper border border-brass-400/35 shadow-2xl relative z-10 overflow-x-auto no-scrollbar shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-1.5 font-mono text-[11px] sm:text-xs text-brass-300 font-semibold shrink-0">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex items-center gap-1 font-mono text-[10px] sm:text-xs text-brass-300 font-semibold shrink-0">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="7" />
                 <path d="M21 21l-4.3-4.3M11 8v6M8 11h6" strokeLinecap="round" />
               </svg>
-              <span className="whitespace-nowrap">Page {zoomState.pageNum} HD Zoom</span>
+              <span className="whitespace-nowrap">P.{zoomState.pageNum} HD</span>
               {isZoomRendering && (
-                <div className="animate-spin h-3.5 w-3.5 border-2 border-brass-400 border-t-transparent rounded-full ml-1" title="Rendering vector sharpness..." />
+                <div className="animate-spin h-3 w-3 border-2 border-brass-400 border-t-transparent rounded-full ml-0.5" title="Rendering vector sharpness..." />
               )}
             </div>
 
-            {/* Sharpness Range Slider Bar */}
-            <div className="flex items-center gap-2.5 flex-1 max-w-md mx-2">
-              <span className="font-mono text-[10px] text-void-200/60 shrink-0">1x</span>
+            {/* Live Sharpness Range Slider Bar */}
+            <div className="flex items-center gap-1.5 flex-1 max-w-xs sm:max-w-md mx-1">
+              <span className="font-mono text-[9px] sm:text-[10px] text-void-200/60 shrink-0">1x</span>
               <input
                 type="range"
                 min="1.0"
                 max="10.0"
-                step="0.5"
-                value={zoomScale}
-                onChange={(e) => handleZoomScaleChange(parseFloat(e.target.value))}
-                className="w-full accent-brass-400 cursor-pointer"
+                step="0.1"
+                value={liveScale}
+                onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
+                onMouseUp={() => handleZoomScaleChange(liveScale)}
+                onTouchEnd={() => handleZoomScaleChange(liveScale)}
+                className="w-full accent-brass-400 cursor-pointer h-1.5 bg-void-800 rounded-lg"
               />
-              <span className="font-mono text-xs text-brass-300 font-bold shrink-0 w-14 text-right">
-                {Math.round(zoomScale * 100)}%
+              <span className="font-mono text-[10px] sm:text-xs text-brass-300 font-bold shrink-0 w-10 text-right">
+                {Math.round(liveScale * 100)}%
               </span>
             </div>
 
             {/* Quick Zoom Presets & Center Reset */}
-            <div className="hidden sm:flex items-center gap-1 shrink-0 font-mono text-[10px]">
+            <div className="flex items-center gap-1 shrink-0 font-mono text-[9px] sm:text-[10px]">
               {[1.0, 2.5, 5.0, 10.0].map((sc) => (
                 <button
                   key={sc}
                   onClick={() => handleZoomScaleChange(sc)}
-                  className={`px-2 py-1 rounded border transition-colors cursor-pointer ${
-                    zoomScale === sc 
+                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border transition-colors cursor-pointer ${
+                    Math.abs(liveScale - sc) < 0.1
                       ? "bg-brass-400 text-void-950 font-bold border-brass-400" 
                       : "bg-void-900/60 border-void-700 text-void-200 hover:text-brass-300"
                   }`}
@@ -779,7 +794,7 @@ export default function FlipbookReader({
               ))}
               <button
                 onClick={() => setPanOffset({ x: 0, y: 0 })}
-                className="px-2 py-1 rounded border bg-void-900/60 border-void-700 text-brass-300 hover:bg-brass-400/20 transition-colors cursor-pointer ml-1"
+                className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border bg-void-900/60 border-void-700 text-brass-300 hover:bg-brass-400/20 transition-colors cursor-pointer ml-0.5"
                 title="Reset pan position to center"
               >
                 🎯 Center
@@ -788,7 +803,7 @@ export default function FlipbookReader({
 
             {/* Close Button */}
             <button 
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-void-900/80 hover:bg-void-800 border border-brass-400/30 text-paper hover:text-brass-300 transition-colors cursor-pointer shrink-0 ml-1"
+              className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-void-900/80 hover:bg-void-800 border border-brass-400/30 text-paper hover:text-brass-300 transition-colors cursor-pointer shrink-0 ml-0.5"
               onClick={() => setZoomState(null)}
               title="Close HD Zoom Viewer"
             >
@@ -796,7 +811,7 @@ export default function FlipbookReader({
             </button>
           </div>
 
-          {/* Main 360-Degree Panning Viewport (Slide page left, right, up, down in any angle) */}
+          {/* Main 360-Degree Panning Viewport */}
           <div 
             className={`flex-1 w-full max-w-6xl overflow-hidden my-2 p-2 rounded-xl flex items-center justify-center relative select-none ${
               isPanning ? "cursor-grabbing" : "cursor-grab"
@@ -805,8 +820,8 @@ export default function FlipbookReader({
             onWheel={(e) => {
               e.stopPropagation();
               const delta = e.deltaY < 0 ? 0.5 : -0.5;
-              const newScale = Math.min(10.0, Math.max(1.0, Math.round((zoomScale + delta) * 10) / 10));
-              handleZoomScaleChange(newScale);
+              const newScale = Math.min(10.0, Math.max(1.0, Math.round((liveScale + delta) * 10) / 10));
+              handleSliderChange(newScale);
             }}
             onMouseDown={(e) => handlePanStart(e.clientX, e.clientY)}
             onMouseMove={(e) => handlePanMove(e.clientX, e.clientY)}
@@ -828,7 +843,7 @@ export default function FlipbookReader({
                 alt={`HD Zoomed Page ${zoomState.pageNum}`} 
                 className="max-w-none h-auto object-contain rounded-lg shadow-2xl transition-transform duration-75 pointer-events-none"
                 style={{
-                  width: `${100 * (zoomScale > 1 ? zoomScale : 1)}%`,
+                  width: `${100 * (liveScale > 1 ? liveScale : 1)}%`,
                   maxHeight: 'none',
                   transform: `translate(${panOffset.x}px, ${panOffset.y}px)`
                 }}
