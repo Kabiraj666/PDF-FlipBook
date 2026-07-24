@@ -229,29 +229,105 @@ export default function UploadScreen({
         )}
       </div>
 
-      {/* How to Use Section */}
-      <div className="relative z-10 w-full max-w-xl mt-12 text-left px-2">
-        <h2 className="font-mono text-[9px] uppercase tracking-[0.25em] text-brass-300 mb-4 border-b border-void-800 pb-2">
-          Quick Start Guide
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-[11px]">
-          <div className="glass p-4 rounded-xl border border-void-800 hover:border-brass-400/20 transition-all duration-300 shadow-glass">
-            <span className="text-brass-300 font-bold block mb-1">1. Choose a PDF</span>
-            <p className="text-void-200/60 leading-relaxed">
-              Drag &amp; drop a file, browse locally, or click any book from your bookshelf cache.
-            </p>
+      {/* Detailed How to Use Section */}
+      <div className="relative z-10 w-full max-w-4xl mt-12 text-left px-2">
+        <div className="flex items-center justify-between mb-4 border-b border-void-800 pb-2">
+          <h2 className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass-300">
+            Quick Start Guide &amp; Feature Walkthrough
+          </h2>
+          <span className="font-mono text-[9px] text-void-200/40 uppercase tracking-widest hidden sm:inline">
+            Leaflet PDF Reader v0.1
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          {/* Step 1 Card */}
+          <div className="glass p-5 rounded-2xl border border-void-800 hover:border-brass-400/30 transition-all duration-300 shadow-glass flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-brass-300 font-mono font-bold text-sm">1. Open &amp; Save PDFs</span>
+                <span className="text-base">📂</span>
+              </div>
+              <ul className="space-y-1.5 text-void-200/70 text-[11px] leading-relaxed">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Drag &amp; Drop:</strong> Drop any local PDF or click to browse files on your device.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Paste Web Links:</strong> Paste direct PDF URLs to stream documents without downloading.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Bookshelf Offline Cache:</strong> Opened books automatically cache in your private browser storage so you can re-open them anytime.</span>
+                </li>
+              </ul>
+            </div>
+            <div className="mt-3 pt-2 border-t border-void-700/40 font-mono text-[9px] text-brass-300/70">
+              🔒 100% Private — Processed in-browser
+            </div>
           </div>
-          <div className="glass p-4 rounded-xl border border-void-800 hover:border-brass-400/20 transition-all duration-300 shadow-glass">
-            <span className="text-brass-300 font-bold block mb-1">2. Flip to Read</span>
-            <p className="text-void-200/60 leading-relaxed">
-              Swipe or click page corners to turn pages. Toggle the flip sound button to hear satisfying acoustic folds.
-            </p>
+
+          {/* Step 2 Card */}
+          <div className="glass p-5 rounded-2xl border border-void-800 hover:border-brass-400/30 transition-all duration-300 shadow-glass flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-brass-300 font-mono font-bold text-sm">2. 2P Book Spread &amp; Flip</span>
+                <span className="text-base">📖</span>
+              </div>
+              <ul className="space-y-1.5 text-void-200/70 text-[11px] leading-relaxed">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Authentic 2P Spread:</strong> Realistic 3D paper fold animation with central spine shadow.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Touch &amp; Corner Turning:</strong> Swipe touch screen, click page corners, or tap floating <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">&lt;</code> <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">&gt;</code> arrows.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Direct Jump:</strong> Tap <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">p.X/Y</code> to jump directly to any page, middle, or end.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Acoustic Flip Sound:</strong> Toggle real paper flip audio sound effects (<code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">🔊</code>/<code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">🔇</code>).</span>
+                </li>
+              </ul>
+            </div>
+            <div className="mt-3 pt-2 border-t border-void-700/40 font-mono text-[9px] text-brass-300/70">
+              ⚡ Ultra-fast 60fps page turns
+            </div>
           </div>
-          <div className="glass p-4 rounded-xl border border-void-800 hover:border-brass-400/20 transition-all duration-300 shadow-glass">
-            <span className="text-brass-300 font-bold block mb-1">3. Access Tools</span>
-            <p className="text-void-200/60 leading-relaxed">
-              Bookmark lines, search text keywords, zoom to examine details, or enable Night Mode to relax your eyes.
-            </p>
+
+          {/* Step 3 Card */}
+          <div className="glass p-5 rounded-2xl border border-void-800 hover:border-brass-400/30 transition-all duration-300 shadow-glass flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-brass-300 font-mono font-bold text-sm">3. Zoom, Mobile &amp; Tools</span>
+                <span className="text-base">🔍</span>
+              </div>
+              <ul className="space-y-1.5 text-void-200/70 text-[11px] leading-relaxed">
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Reader Zoom &amp; Drag:</strong> Use <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">- 100% +</code>, <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">Ctrl+Wheel</code>, or touch pinch to zoom &amp; drag-pan pages.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Mobile Landscape Fullscreen:</strong> Tap <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">⛶</code> on mobile to auto-rotate screen into wide Landscape mode.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>360° HD Vector Zoom:</strong> Tap <code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">🔍 P.X</code> for razor-sharp vector zooming up to 1000% with live slider.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <span className="text-brass-400 font-bold">•</span>
+                  <span><strong>Search, TOC &amp; Ribbons:</strong> Search keywords, jump via TOC chapters, and pin gold bookmarks (<code className="bg-void-900 px-1 py-0.5 rounded border border-void-700">🔖</code>).</span>
+                </li>
+              </ul>
+            </div>
+            <div className="mt-3 pt-2 border-t border-void-700/40 font-mono text-[9px] text-brass-300/70">
+              📱 Optimized for Mobile &amp; Desktop
+            </div>
           </div>
         </div>
       </div>
