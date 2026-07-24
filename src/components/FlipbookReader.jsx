@@ -87,6 +87,7 @@ export default function FlipbookReader({
 }) {
   const bookRef = useRef(null);
   const containerRef = useRef(null);
+  const readerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(lastPage || 1);
   const [isFlipping, setIsFlipping] = useState(false);
 
@@ -366,11 +367,77 @@ export default function FlipbookReader({
     }
   }
 
-  function handleFullscreen() {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
+  useEffect(() => {
+    function handleFullscreenChange() {
+      const isFS = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (!isFS) {
+        if (window.screen?.orientation?.unlock) {
+          try {
+            window.screen.orientation.unlock();
+          } catch (err) {}
+        }
+      }
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 150);
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  async function handleFullscreen() {
+    try {
+      const isFS = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      if (!isFS) {
+        const el = readerRef.current || containerRef.current || document.documentElement;
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+          await el.webkitRequestFullscreen();
+        } else if (el.mozRequestFullScreen) {
+          await el.mozRequestFullScreen();
+        } else if (el.msRequestFullscreen) {
+          await el.msRequestFullscreen();
+        }
+
+        // Lock screen orientation to landscape or landscape-primary on Android / Mobile when entering fullscreen
+        if (window.screen?.orientation?.lock) {
+          try {
+            await window.screen.orientation.lock("landscape");
+          } catch (err1) {
+            try {
+              await window.screen.orientation.lock("landscape-primary");
+            } catch (err2) {
+              console.warn("Screen orientation lock fallback:", err2);
+            }
+          }
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+
+        if (window.screen?.orientation?.unlock) {
+          try {
+            window.screen.orientation.unlock();
+          } catch (err) {}
+        }
+      }
+    } catch (err) {
+      console.warn("Fullscreen toggle error:", err);
     }
   }
 
@@ -406,7 +473,7 @@ export default function FlipbookReader({
   const rightThicknessWidth = pages.length > 1 ? Math.max(1, Math.round(((pages.length - currentPage) / pages.length) * MAX_THICKNESS)) : 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-void-950">
+    <div ref={readerRef} className="min-h-screen flex flex-col bg-void-950">
       <Toolbar
         title={fileName}
         currentPage={currentPage}

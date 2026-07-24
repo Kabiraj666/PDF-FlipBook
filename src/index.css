@@ -44,6 +44,14 @@ body {
   border: 1px solid rgba(159, 216, 255, 0.12);
 }
 
+/* Fullscreen container reset & landscape presentation */
+:fullscreen, :-webkit-full-screen, :-moz-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: #06080F !important;
+  overflow: hidden !important;
+}
+
 .glass-strong {
   background: rgba(11, 14, 27, 0.75);
   backdrop-filter: blur(20px);
