@@ -25,8 +25,6 @@ export default function Toolbar({
   onToggleToc,
   onSearch,
   onOpenLibraryScreen,
-  viewMode = "auto",
-  onToggleViewMode,
   readerZoom = 1.0,
   onZoomIn,
   onZoomOut,
@@ -94,47 +92,6 @@ export default function Toolbar({
           +
         </button>
       </div>
-
-      {/* View Mode Toggle Button (Single Page 📄 vs Book Spread 📖) */}
-      {onToggleViewMode && (
-        <button
-          onClick={onToggleViewMode}
-          title={
-            viewMode === "single"
-              ? "Current: Single Page View (Large Text). Click for 2-Page Book Spread."
-              : viewMode === "double"
-              ? "Current: 2-Page Book Spread. Click for Auto mode."
-              : "Current: Auto Layout. Click for Single Page View (2x Larger Text)."
-          }
-          className={`flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border text-[11px] sm:text-xs font-mono shrink-0 cursor-pointer transition-all ${
-            viewMode === "single"
-              ? "bg-brass-400 text-void-950 border-brass-400 font-semibold shadow-glow"
-              : viewMode === "double"
-              ? "bg-beam-400/20 text-beam-300 border-beam-400/40 font-semibold"
-              : "bg-void-900/60 border-void-700 text-void-200 hover:text-brass-300"
-          }`}
-        >
-          {viewMode === "single" ? (
-            <>
-              <span>📄</span>
-              <span className="hidden sm:inline">1 Page (2x)</span>
-              <span className="sm:hidden text-[9px]">1P</span>
-            </>
-          ) : viewMode === "double" ? (
-            <>
-              <span>📖</span>
-              <span className="hidden sm:inline">2 Page Spread</span>
-              <span className="sm:hidden text-[9px]">2P</span>
-            </>
-          ) : (
-            <>
-              <span>📱</span>
-              <span className="hidden sm:inline">Auto View</span>
-              <span className="sm:hidden text-[9px]">Auto</span>
-            </>
-          )}
-        </button>
-      )}
 
       <IconBtn title="Table of contents" onClick={onToggleToc}>
         <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

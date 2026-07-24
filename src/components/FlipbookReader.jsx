@@ -103,8 +103,11 @@ export default function FlipbookReader({
       window.localStorage.setItem("leaflet:sound", String(soundEnabled));
     } catch {}
   }, [soundEnabled]);
-  const [viewMode, setViewMode] = useState("auto"); // "auto" | "single" | "double"
-  const [readerZoom, setReaderZoom] = useState(1.0); // 0.8x to 2.5x main viewer scale
+  const [readerZoom, setReaderZoom] = useState(1.0); // 0.8x to 3.0x main viewer scale
+  const [readerPan, setReaderPan] = useState({ x: 0, y: 0 }); // workspace drag pan offset
+  const [isReaderPanning, setIsReaderPanning] = useState(false);
+  const readerPanStartRef = useRef({ x: 0, y: 0 });
+  const touchDistRef = useRef(null);
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [zoomState, setZoomState] = useState(null); // { pageNum, dataUrl }
@@ -117,13 +120,33 @@ export default function FlipbookReader({
   const [dims, setDims] = useState(null);
   const activePagesRef = useRef(pages);
 
-  const toggleViewMode = () => {
-    setViewMode((prev) => (prev === "auto" ? "single" : prev === "single" ? "double" : "auto"));
+  const handleReaderZoomIn = () => setReaderZoom((z) => Math.min(3.0, Math.round((z + 0.25) * 100) / 100));
+  const handleReaderZoomOut = () => setReaderZoom((z) => Math.max(0.8, Math.round((z - 0.25) * 100) / 100));
+  const handleResetReaderZoom = () => {
+    setReaderZoom(1.0);
+    setReaderPan({ x: 0, y: 0 });
   };
 
-  const handleReaderZoomIn = () => setReaderZoom((z) => Math.min(2.5, Math.round((z + 0.25) * 100) / 100));
-  const handleReaderZoomOut = () => setReaderZoom((z) => Math.max(0.8, Math.round((z - 0.25) * 100) / 100));
-  const handleResetReaderZoom = () => setReaderZoom(1.0);
+  const handleReaderPanStart = (clientX, clientY) => {
+    if (readerZoom <= 1.0 && !document.fullscreenElement) return;
+    setIsReaderPanning(true);
+    readerPanStartRef.current = {
+      x: clientX - readerPan.x,
+      y: clientY - readerPan.y
+    };
+  };
+
+  const handleReaderPanMove = (clientX, clientY) => {
+    if (!isReaderPanning) return;
+    setReaderPan({
+      x: clientX - readerPanStartRef.current.x,
+      y: clientY - readerPanStartRef.current.y
+    });
+  };
+
+  const handleReaderPanEnd = () => {
+    setIsReaderPanning(false);
+  };
 
   // Directly sets the image src and hides spinner in the DOM to avoid re-renders
   const updatePageInDom = (pageNum, rendered) => {
@@ -148,8 +171,8 @@ export default function FlipbookReader({
     if (!pdfDoc) return;
 
     const numPages = pages.length;
-    const windowStart = Math.max(1, currentPage - 4);
-    const windowEnd = Math.min(numPages, currentPage + 4);
+    const windowStart = Math.max(1, currentPage - 2);
+    const windowEnd = Math.min(numPages, currentPage + 2);
 
     // Load pages within the window
     for (let pageNum = windowStart; pageNum <= windowEnd; pageNum++) {
@@ -158,7 +181,7 @@ export default function FlipbookReader({
 
       if (!isRendered && !isRendering) {
         renderingQueueRef.current.add(pageNum);
-        renderPageToDataUrl(pdfDoc, pageNum, 2.2)
+        renderPageToDataUrl(pdfDoc, pageNum, 1.6)
           .then((rendered) => {
             updatePageInDom(pageNum, rendered);
           })
@@ -188,7 +211,7 @@ export default function FlipbookReader({
         if (!isRendered && !isRendering) {
           try {
             renderingQueueRef.current.add(pageNum);
-            const rendered = await renderPageToDataUrl(pdfDoc, pageNum, 2.2);
+            const rendered = await renderPageToDataUrl(pdfDoc, pageNum, 1.6);
             if (isCancelled) {
               renderingQueueRef.current.delete(pageNum);
               break;
@@ -197,8 +220,8 @@ export default function FlipbookReader({
             updatePageInDom(pageNum, rendered);
             renderingQueueRef.current.delete(pageNum);
 
-            // 60ms delay to keep the browser responsive
-            await new Promise((resolve) => setTimeout(resolve, 60));
+            // 100ms delay to keep the main thread ultra fast
+            await new Promise((resolve) => setTimeout(resolve, 100));
           } catch (err) {
             console.error(`Background render failed for page ${pageNum}:`, err);
             renderingQueueRef.current.delete(pageNum);
@@ -207,10 +230,10 @@ export default function FlipbookReader({
       }
     }
 
-    // Start background rendering after a 1.5 second delay
+    // Start background rendering after a 1.2 second delay
     timerId = setTimeout(() => {
       runBackgroundRendering();
-    }, 1500);
+    }, 1200);
 
     return () => {
       isCancelled = true;
@@ -221,39 +244,30 @@ export default function FlipbookReader({
   const firstValidPage = pages.find((p) => p && p.width && p.height);
   const aspect = firstValidPage ? firstValidPage.width / firstValidPage.height : 0.72;
 
-  const isPortrait = viewMode === "single" ? true : viewMode === "double" ? false : (
-    (containerRef.current?.clientWidth || window.innerWidth) < 768 ||
-    (dims ? (dims.width * 2 > (containerRef.current?.clientWidth || 9999)) : false)
-  );
+  // Strict 2P Book Spread View Only
+  const isPortrait = false;
 
   useEffect(() => {
     function computeDims() {
       const el = containerRef.current;
       if (!el) return;
       const isMobile = window.innerWidth < 640;
-      const padX = isMobile ? 8 : 32;
-      const padY = isMobile ? 8 : 32;
+      const padX = isMobile ? 8 : 24;
+      const padY = isMobile ? 8 : 24;
       const availW = el.clientWidth - padX;
       const availH = el.clientHeight - padY;
-      let h = availH;
-      let w = h * aspect;
-      if (isPortrait) {
-        if (w > availW) {
-          w = availW;
-          h = w / aspect;
-        }
-      } else {
-        if (w > availW / 2) {
-          w = availW / 2;
-          h = w / aspect;
-        }
+      let w = availW / 2;
+      let h = w / aspect;
+      if (h > availH) {
+        h = availH;
+        w = h * aspect;
       }
-      setDims({ width: Math.max(180, w), height: Math.max(240, h) });
+      setDims({ width: Math.max(140, w), height: Math.max(200, h) });
     }
     computeDims();
     window.addEventListener("resize", computeDims);
     return () => window.removeEventListener("resize", computeDims);
-  }, [aspect, isPortrait]);
+  }, [aspect]);
 
   const flippedOnMount = useRef(false);
   useEffect(() => {
@@ -410,8 +424,6 @@ export default function FlipbookReader({
         }}
         onSearch={handleSearch}
         onOpenLibraryScreen={onExit}
-        viewMode={viewMode}
-        onToggleViewMode={toggleViewMode}
         readerZoom={readerZoom}
         onZoomIn={handleReaderZoomIn}
         onZoomOut={handleReaderZoomOut}
@@ -420,13 +432,46 @@ export default function FlipbookReader({
 
       <div 
         ref={containerRef} 
-        className="flex-1 flex items-center justify-center overflow-auto px-1 sm:px-4 py-2 sm:py-4 relative group select-none"
+        className={`flex-1 flex items-center justify-center overflow-auto px-1 sm:px-4 py-2 sm:py-4 relative group select-none ${
+          readerZoom > 1.0 ? (isReaderPanning ? "cursor-grabbing" : "cursor-grab") : ""
+        }`}
         onWheel={(e) => {
-          if (e.ctrlKey) {
+          if (e.ctrlKey || readerZoom > 1.0) {
             e.preventDefault();
             if (e.deltaY < 0) handleReaderZoomIn();
             else handleReaderZoomOut();
           }
+        }}
+        onMouseDown={(e) => handleReaderPanStart(e.clientX, e.clientY)}
+        onMouseMove={(e) => handleReaderPanMove(e.clientX, e.clientY)}
+        onMouseUp={handleReaderPanEnd}
+        onMouseLeave={handleReaderPanEnd}
+        onTouchStart={(e) => {
+          if (e.touches.length === 2) {
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            touchDistRef.current = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+          } else if (e.touches.length === 1) {
+            handleReaderPanStart(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }}
+        onTouchMove={(e) => {
+          if (e.touches.length === 2 && touchDistRef.current) {
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            const factor = dist / touchDistRef.current;
+            if (Math.abs(factor - 1.0) > 0.05) {
+              setReaderZoom((prev) => Math.min(3.0, Math.max(0.8, Math.round(prev * factor * 20) / 20)));
+              touchDistRef.current = dist;
+            }
+          } else if (e.touches.length === 1 && isReaderPanning) {
+            handleReaderPanMove(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }}
+        onTouchEnd={() => {
+          touchDistRef.current = null;
+          handleReaderPanEnd();
         }}
       >
         {/* Left Floating Arrow Button (Previous Page) */}
@@ -459,14 +504,14 @@ export default function FlipbookReader({
 
         {dims ? (
           <div 
-            className="relative transition-transform duration-300 ease-out rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#161D32] via-[#0F1424] to-[#0A0D18] border border-brass-400/35 sm:border-2 p-[12px_6px] sm:p-[24px_12px] shadow-[0_35px_80px_-10px_rgba(0,0,0,0.95)]" 
+            className="relative transition-transform duration-200 ease-out rounded-xl sm:rounded-2xl bg-gradient-to-b from-[#161D32] via-[#0F1424] to-[#0A0D18] border border-brass-400/35 sm:border-2 p-[12px_6px] sm:p-[24px_12px] shadow-[0_35px_80px_-10px_rgba(0,0,0,0.95)]" 
             style={{ 
-              width: dims.width * (isPortrait ? 1 : 2) + (window.innerWidth < 640 ? 12 : 24), 
+              width: dims.width * 2 + (window.innerWidth < 640 ? 12 : 24), 
               height: dims.height + (window.innerWidth < 640 ? 24 : 48),
-              transform: `scale(${readerZoom}) ${
-                (!isPortrait && currentPage === 1) 
+              transform: `translate(${readerPan.x}px, ${readerPan.y}px) scale(${readerZoom}) ${
+                (currentPage === 1) 
                   ? 'translateX(-25%)' 
-                  : (!isPortrait && currentPage === totalBookPages && totalBookPages % 2 === 0) 
+                  : (currentPage === totalBookPages && totalBookPages % 2 === 0) 
                     ? 'translateX(25%)' 
                     : 'translateX(0)'
               }`,
@@ -484,7 +529,7 @@ export default function FlipbookReader({
             <div className="absolute bottom-1 right-1 w-3 h-3 sm:w-4 sm:h-4 border-b-2 border-r-2 border-brass-400/60 rounded-br-sm pointer-events-none z-10" />
 
             {/* Page-Specific Floating Zoom Pill Buttons */}
-            {isPortrait || currentPage === 1 ? (
+            {currentPage === 1 ? (
               <button
                 onClick={() => handleZoom(currentPage)}
                 className="absolute top-1.5 sm:top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-void-950/90 backdrop-blur-md border border-brass-400/40 text-beam-300 hover:text-paper text-[10px] sm:text-xs font-mono font-semibold shadow-2xl transition-all cursor-pointer opacity-85 hover:opacity-100 whitespace-nowrap"
